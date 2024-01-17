@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All fish</title>
+
+    <style>
+      table,
+      td,
+      th {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 0.5rem;
+        font-size: 1.3rem;
+      }
+
+      .italic {
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="scrapedData.js"></script>
+
+    <table id="fish-table">
+      <thead>
+        <th>Number</th>
+        <th>Common Name</th>
+        <th>Image</th>
+
+        <th>Species</th>
+        <th>Family</th>
+        <th>Order</th>
+      </thead>
+
+      <tbody id="fish-table-body"></tbody>
+    </table>
+
+    <script>
+      const run = () => {
+        console.log(data);
+
+        const table = document.getElementById("fish-table-body");
+
+        let prevRowOrder = "";
+        let rowBgColor = "#ddd";
+
+        Object.entries(data)
+          .sort((x, y) => {
+            const a = x[1],
+              b = y[1];
+            if (a?.order !== b?.order) return a?.order?.localeCompare(b?.order);
+            if (a?.family !== b?.family)
+              return a?.family?.localeCompare(b?.family);
+            return a?.commonName?.localeCompare(b?.commonName);
+            // return a?.order === b?.order ? true : a?.order - b?.order;
+          })
+          .forEach(([name, fish], idx) => {
+            const row = document.createElement("tr");
+            const td1 = document.createElement("TD");
+            row.appendChild(td1);
+            const td2 = document.createElement("TD");
+            row.appendChild(td2);
+            const td3 = document.createElement("TD");
+            row.appendChild(td3);
+            const td4 = document.createElement("TD");
+            row.appendChild(td4);
+            const td5 = document.createElement("TD");
+            row.appendChild(td5);
+            const td6 = document.createElement("TD");
+            row.appendChild(td6);
+
+            td1.innerText = idx + 1;
+            td2.innerText = name;
+            td3.innerHTML = `<div> <img src="https:${fish?.imageSrc}"/> </div>`;
+            td4.innerText = fish?.species;
+            td5.innerText = fish?.family;
+            td6.innerText = fish?.order;
+
+            td4.classList.add("italic");
+            td5.classList.add("italic");
+            td6.classList.add("italic");
+
+            table.appendChild(row);
+
+            if (fish?.order !== prevRowOrder) {
+              rowBgColor = rowBgColor === "#ddd" ? "#fff" : "#ddd";
+            }
+            prevRowOrder = fish?.order;
+            row.style.backgroundColor = rowBgColor;
+          });
+      };
+
+      window.onload = run;
+    </script>
+  </body>
+</html>
