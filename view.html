@@ -19,6 +19,76 @@
       .italic {
         font-style: italic;
       }
+
+      #fish-in-orders {
+        margin-top: 3rem;
+        padding: 1rem;
+      }
+
+      #whole-enchilada {
+        padding: 1rem;
+        border: 1px solid black;
+        border-radius: 1rem;
+        color: white;
+      }
+
+      #whole-enchilada .title {
+        width: 100%;
+      }
+
+      #whole-enchilada .phylum,
+      #whole-enchilada .order,
+      #whole-enchilada .family,
+      #whole-enchilada .species {
+        padding: 1rem;
+        border: 1px solid black;
+        border-radius: 1rem;
+        margin: 1rem;
+
+        /* Omg these 2 lines add so much maaaaaagic */
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      #whole-enchilada .phylum {
+        border-color: rgb(17, 141, 17);
+        /* color: green; */
+        background: linear-gradient(
+          to bottom,
+          rgba(17, 141, 17, 0.6),
+          rgba(17, 141, 17, 0.2)
+        );
+      }
+
+      #whole-enchilada .order {
+        border-color: rgb(12, 12, 238);
+        /* color: blue; */
+        background: linear-gradient(
+          to bottom,
+          rgba(12, 12, 238, 0.6),
+          rgba(12, 12, 238, 0.2)
+        );
+      }
+
+      #whole-enchilada .family {
+        border-color: rgb(138, 43, 226);
+        /* color: blueviolet; */
+        background: linear-gradient(
+          to bottom,
+          rgba(138, 43, 226, 0.6),
+          rgba(138, 43, 226, 0.2)
+        );
+      }
+
+      #whole-enchilada .species {
+        border-color: rgb(233, 201, 18);
+        color: black;
+        background: linear-gradient(
+          to bottom,
+          rgba(233, 201, 18, 0.6),
+          rgba(233, 201, 18, 0.2)
+        );
+      }
     </style>
   </head>
   <body>
@@ -31,6 +101,8 @@
         <th>Image</th>
 
         <th>Species</th>
+        <th>Genus</th>
+
         <th>Family</th>
         <th>Order</th>
       </thead>
@@ -38,9 +110,50 @@
       <tbody id="fish-table-body"></tbody>
     </table>
 
+    <div id="fish-in-orders"></div>
+
+    <div id="whole-enchilada">yo</div>
+
     <script>
-      const run = () => {
-        console.log(data);
+      /**
+       * Shoot, I kinda wish we had Phyla too.... Omg we do!!! Ahh but only for some. Ok whatever, just assume Chordata if not listed.
+       *
+       * Comb jellies! https://biodiversityintrobio.wordpress.com/kingdom-animalia/phyla-cnidaria-and-ctenophora/
+       *
+       *
+       * Kingdom, Phylum, Class, Order, Family, Genus, Species
+       *
+       * I mean do we want to do it with routing in a vue app??
+       *
+       * There should be just some simple but nice way to present it....
+       *
+       */
+
+      // We also need to get all orders under a phylum, all families under an order, and all fish under a family.. (ignore genus for now)
+      const getFish = (key, value) => {
+        return Object.values(data).filter((v) =>
+          v ? v[key] === value : false
+        );
+      };
+
+      // Returns all instances of childKey that fall under key: value, for instance all families that fall under order: Labriformes
+      const getDescendants = (key, value, childKey) => {
+        const fish = getFish(key, value);
+        return [...new Set(fish.map((f) => f[childKey]))];
+      };
+
+      // TODO: write and use this
+      // TODO: also get rid of any with undefined order, so we don't have to filter that out twice elsewhere
+      const cleanData = (d) => {
+        Object.values(d).forEach((obj) => {
+          Object.entries(obj).forEach(([key, val]) => {
+            // If it has a second capitalized letter, remove everything after that
+          });
+        });
+      };
+
+      const makeTable = () => {
+        const mapOfWeirdWikiNamesToCommonNames = {};
 
         const table = document.getElementById("fish-table-body");
 
@@ -48,12 +161,17 @@
         let rowBgColor = "#ddd";
 
         Object.entries(data)
+          .filter(([name, fish]) => {
+            return fish && fish.order;
+          })
           .sort((x, y) => {
             const a = x[1],
               b = y[1];
             if (a?.order !== b?.order) return a?.order?.localeCompare(b?.order);
             if (a?.family !== b?.family)
               return a?.family?.localeCompare(b?.family);
+            if (a?.genus !== b?.genus) return a?.genus?.localeCompare(b?.genus);
+
             return a?.commonName?.localeCompare(b?.commonName);
             // return a?.order === b?.order ? true : a?.order - b?.order;
           })
@@ -71,17 +189,21 @@
             row.appendChild(td5);
             const td6 = document.createElement("TD");
             row.appendChild(td6);
+            const td7 = document.createElement("TD");
+            row.appendChild(td7);
 
             td1.innerText = idx + 1;
-            td2.innerText = name;
+            td2.innerText = mapOfWeirdWikiNamesToCommonNames[name] ?? name;
             td3.innerHTML = `<div> <img src="https:${fish?.imageSrc}"/> </div>`;
             td4.innerText = fish?.species;
-            td5.innerText = fish?.family;
-            td6.innerText = fish?.order;
+            td5.innerText = fish?.genus;
+            td6.innerText = fish?.family;
+            td7.innerText = fish?.order;
 
             td4.classList.add("italic");
             td5.classList.add("italic");
             td6.classList.add("italic");
+            td7.classList.add("italic");
 
             table.appendChild(row);
 
@@ -91,6 +213,120 @@
             prevRowOrder = fish?.order;
             row.style.backgroundColor = rowBgColor;
           });
+      };
+
+      const makeOrdersTable = (orders) => {
+        // Extra fish in orders thing
+        const fishInOrders = document.getElementById("fish-in-orders");
+
+        Object.entries(orders)
+          .filter(([orderName, stuff]) => {
+            return orderName !== "undefined";
+          })
+          .forEach(([order, stuff]) => {
+            const d = document.createElement("DIV");
+            const t = document.createElement("DIV");
+            d.appendChild(t);
+            t.innerText = order;
+            t.style.fontWeight = 700;
+
+            const ul = document.createElement("UL");
+            d.appendChild(ul);
+
+            [...stuff.values()].forEach((v) => {
+              const li = document.createElement("LI");
+              li.innerText = v;
+              ul.appendChild(li);
+            });
+
+            // console.log(stuff);
+            fishInOrders.appendChild(d);
+          });
+      };
+
+      const makeWholeEnchilada = (phyla) => {
+        // Whole organization attempt thing:
+
+        const container = document.getElementById("whole-enchilada");
+
+        console.log(phyla);
+
+        const createTitle = (parent, val) => {
+          const title = document.createElement("DIV");
+          title.innerText = val;
+          title.classList.add("title");
+          parent.appendChild(title);
+        };
+
+        phyla.forEach((phylum) => {
+          const phylumDiv = document.createElement("DIV");
+          phylumDiv.classList.add("phylum");
+          container.appendChild(phylumDiv);
+          createTitle(phylumDiv, phylum);
+
+          const orders = getDescendants("phylum", phylum, "order");
+          orders.forEach((order) => {
+            const orderDiv = document.createElement("DIV");
+            orderDiv.classList.add("order");
+            phylumDiv.appendChild(orderDiv);
+            createTitle(orderDiv, order);
+
+            const families = getDescendants("order", order, "family");
+            families.forEach((family) => {
+              const familyDiv = document.createElement("DIV");
+              familyDiv.classList.add("family");
+              orderDiv.appendChild(familyDiv);
+              createTitle(familyDiv, family);
+
+              const species = getDescendants("family", family, "commonName");
+              species.forEach((spec) => {
+                const speciesDiv = document.createElement("DIV");
+                speciesDiv.classList.add("species");
+                familyDiv.appendChild(speciesDiv);
+
+                // Can grab whole object from original data here... ugly but whatever
+                speciesDiv.innerText = spec;
+              });
+            });
+          });
+        });
+      };
+
+      const run = () => {
+        console.log(
+          "Data:",
+          data,
+          getFish("order", "Labriformes"),
+          getDescendants("order", "Labriformes", "family"),
+          getDescendants("order", "Labriformes", "commonName") // gives list of all fish but just as strings
+        );
+
+        const orders = {};
+        const phyla = {};
+        // const families = new Set();
+
+        Object.values(data).forEach((el) => {
+          if (!el) return;
+          const phylum = el.phylum ?? "Chordata";
+          if (!orders[el.order]) orders[el.order] = new Set();
+          if (!phyla[phylum]) phyla[phylum] = new Set();
+
+          orders[el.order].add(el.commonName);
+          phyla[phylum].add(el.commonName);
+        });
+
+        // Ok -- there are 7 orders with more than 3 fish.
+        // I think each of those could plausibly be split into families, though it's weird with Myliobatiformes (all diff families)
+        console.log(
+          Object.entries(orders).sort((a, b) => a[1].size - b[1].size),
+          phyla
+        );
+
+        makeTable();
+
+        makeOrdersTable(orders);
+
+        makeWholeEnchilada(Object.keys(phyla));
       };
 
       window.onload = run;
