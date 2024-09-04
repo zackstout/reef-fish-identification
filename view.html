@@ -37,13 +37,14 @@
       }
 
       #whole-enchilada .phylum,
+      #whole-enchilada .class,
       #whole-enchilada .order,
       #whole-enchilada .family,
       #whole-enchilada .species {
-        padding: 1rem;
+        padding: 0.7rem;
         border: 1px solid black;
-        border-radius: 1rem;
-        margin: 1rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem;
 
         /* Omg these 2 lines add so much maaaaaagic */
         display: flex;
@@ -51,48 +52,71 @@
       }
 
       #whole-enchilada .phylum {
-        border-color: rgb(17, 141, 17);
+        border-color: rgb(72, 201, 72);
         /* color: green; */
         background: linear-gradient(
           to bottom,
-          rgba(17, 141, 17, 0.6),
-          rgba(17, 141, 17, 0.2)
+          rgba(72, 201, 72, 0.6),
+          rgba(72, 201, 72, 0.2)
+        );
+      }
+
+      #whole-enchilada .class {
+        border-color: rgb(141, 207, 245);
+        /* color: blue; */
+        background: linear-gradient(
+          to bottom,
+          rgba(141, 207, 245, 0.6),
+          rgba(141, 207, 245, 0.2)
         );
       }
 
       #whole-enchilada .order {
-        border-color: rgb(12, 12, 238);
+        border-color: rgb(105, 172, 211);
         /* color: blue; */
         background: linear-gradient(
           to bottom,
-          rgba(12, 12, 238, 0.6),
-          rgba(12, 12, 238, 0.2)
+          rgba(79, 184, 245, 0.6),
+          rgba(79, 184, 245, 0.2)
         );
       }
 
       #whole-enchilada .family {
-        border-color: rgb(138, 43, 226);
+        border-color: rgb(55, 109, 226);
         /* color: blueviolet; */
         background: linear-gradient(
           to bottom,
-          rgba(138, 43, 226, 0.6),
-          rgba(138, 43, 226, 0.2)
+          rgba(55, 109, 226, 0.6),
+          rgba(55, 109, 226, 0.2)
         );
       }
 
       #whole-enchilada .species {
-        border-color: rgb(233, 201, 18);
-        color: black;
+        border-color: rgb(32, 44, 219);
+        /* color: black; */
+        width: 13rem;
         background: linear-gradient(
           to bottom,
-          rgba(233, 201, 18, 0.6),
-          rgba(233, 201, 18, 0.2)
+          rgba(32, 44, 219, 0.6),
+          rgba(32, 44, 219, 0.2)
         );
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0.75rem;
+      }
+
+      #whole-enchilada img {
+        border-radius: 0.5rem;
+        width: 10rem;
+        margin-bottom: 0.8rem;
       }
     </style>
   </head>
   <body>
-    <script src="scrapedData.js"></script>
+    <script src="scrapedData2.js"></script>
 
     <table id="fish-table">
       <thead>
@@ -126,6 +150,33 @@
        * I mean do we want to do it with routing in a vue app??
        *
        * There should be just some simple but nice way to present it....
+       *
+       *
+       *
+       *
+       *
+       * ==========
+       *
+       * Ok looking kind of surprisingly nice!
+       *
+       * Change colors?
+       *
+       * Make it so hovering a container shows type and value
+       *
+       * Annelids has a bug....Oh jeez a lot is kinda bugged, what's going on hahaha
+       *
+       * Ahhh it's because both have empty classes or orders.... yeah... sure......
+       *
+       * Huh, almost wonder if we should just run the scraper again..... grab everything fresh......
+       * Ok yeah, fixed with a little script finagling, and then a little manual data doctoring. If it works.
+       *
+       * But there is still this group of families that don't have an order on wiki... such as Yellowtail damselfish, in Pomacentridae.... whatever??
+       *
+       *
+       * Hmm I wonder if you could just have a background color and then a background gradient just opacity??
+       * Or use style variables??
+       *
+       * Oh -- instead of having images on their own, make it the background of the div; then add name in white over a black stripe!
        *
        */
 
@@ -251,9 +302,9 @@
 
         console.log(phyla);
 
-        const createTitle = (parent, val) => {
+        const createTitle = (parent, key, val) => {
           const title = document.createElement("DIV");
-          title.innerText = val;
+          title.innerHTML = `${key}: <span style="font-style:italic">${val}</span>`;
           title.classList.add("title");
           parent.appendChild(title);
         };
@@ -262,30 +313,50 @@
           const phylumDiv = document.createElement("DIV");
           phylumDiv.classList.add("phylum");
           container.appendChild(phylumDiv);
-          createTitle(phylumDiv, phylum);
+          createTitle(phylumDiv, "Phylum", phylum);
 
-          const orders = getDescendants("phylum", phylum, "order");
-          orders.forEach((order) => {
-            const orderDiv = document.createElement("DIV");
-            orderDiv.classList.add("order");
-            phylumDiv.appendChild(orderDiv);
-            createTitle(orderDiv, order);
+          const classes = getDescendants("phylum", phylum, "class");
+          classes.forEach((classVal) => {
+            const classDiv = document.createElement("DIV");
+            classDiv.classList.add("class");
+            phylumDiv.appendChild(classDiv);
+            createTitle(classDiv, "Class", classVal);
 
-            const families = getDescendants("order", order, "family");
-            families.forEach((family) => {
-              const familyDiv = document.createElement("DIV");
-              familyDiv.classList.add("family");
-              orderDiv.appendChild(familyDiv);
-              createTitle(familyDiv, family);
+            const orders = getDescendants("class", classVal, "order");
+            orders.forEach((order) => {
+              const orderDiv = document.createElement("DIV");
+              orderDiv.classList.add("order");
+              classDiv.appendChild(orderDiv);
+              createTitle(orderDiv, "Order", order);
 
-              const species = getDescendants("family", family, "commonName");
-              species.forEach((spec) => {
-                const speciesDiv = document.createElement("DIV");
-                speciesDiv.classList.add("species");
-                familyDiv.appendChild(speciesDiv);
+              const families = getDescendants("order", order, "family");
+              families.forEach((family) => {
+                const familyDiv = document.createElement("DIV");
+                familyDiv.classList.add("family");
+                orderDiv.appendChild(familyDiv);
+                createTitle(familyDiv, "Family", family);
 
-                // Can grab whole object from original data here... ugly but whatever
-                speciesDiv.innerText = spec;
+                const species = getDescendants("family", family, "commonName");
+                species.forEach((spec) => {
+                  const speciesDiv = document.createElement("DIV");
+                  speciesDiv.classList.add("species");
+                  familyDiv.appendChild(speciesDiv);
+
+                  const speciesTitle = document.createElement("DIV");
+                  const speciesImage = document.createElement("IMG");
+
+                  speciesDiv.appendChild(speciesImage);
+                  speciesDiv.appendChild(speciesTitle);
+
+                  // Can grab whole object from original data here... ugly but whatever
+
+                  const wholeFish = data[spec];
+
+                  console.log(wholeFish);
+
+                  speciesImage.src = `https:${wholeFish?.imageSrc}`;
+                  speciesTitle.innerText = spec;
+                });
               });
             });
           });
